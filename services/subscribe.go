@@ -1,9 +1,13 @@
 package services
 
 import (
-  "github.com/bwarrin/discordgo"
+	"numenv_subscription_api/models"
+
+	"github.com/labstack/echo/v4"
 )
 
-func Subscribe() {
-  // do stuff
+func Subscribe(c echo.Context, u *models.Subscriber, id string) error {
+
+	// do stuff
+	return nil
 }

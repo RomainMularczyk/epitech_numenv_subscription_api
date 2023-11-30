@@ -1,12 +1,26 @@
 package controllers
 
 import (
-  "github.com/labstack/echo/v4"
-  "numenv_subscription_api/services"
+	"errors"
+	"net/http"
+	"numenv_subscription_api/models"
+	"numenv_subscription_api/services"
+
+	"github.com/labstack/echo/v4"
 )
 
 func Subscribe(ctx echo.Context) error {
-  // do stuff
-  services.Subscribe()
-  return nil
+	// do stuff
+	u := &models.Subscriber{}
+	err := ctx.Bind(u)
+	id := ctx.Param("id")
+
+	if err != nil {
+		return errors.New("invalid user query: " + err.Error())
+	}
+	err = services.Subscribe(ctx, u, id)
+	if err != nil {
+		return err
+	}
+	return ctx.NoContent(http.StatusOK)
 }
