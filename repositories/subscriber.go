@@ -16,7 +16,7 @@ func Subscribe(ctx context.Context, user *models.Subscriber) error {
 		fmt.Println("Error connecting to database", err)
 	}
 
-	q := "INSERT INTO subscribers (id, first_name,last_name, discord_id,email, unique_str, institution, epitech_degree) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);"
+	q := "INSERT INTO subscribers (id, first_name,last_name, email, unique_str, institution, epitech_degree) VALUES ($1, $2, $3, $4, $5, $6, $7);"
 	fmt.Println("q", q)
 	insert, err := db.Prepare(q)
 	if err != nil {
@@ -34,7 +34,6 @@ func Subscribe(ctx context.Context, user *models.Subscriber) error {
 		id,
 		user.Firstname,
 		user.Lastname,
-		user.DiscordId,
 		user.Email,
 		user.UniqueStr,
 		user.Institution,
