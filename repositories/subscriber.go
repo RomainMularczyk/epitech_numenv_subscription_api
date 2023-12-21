@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
-	"log"
+  "numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/db"
 	"numenv_subscription_api/models"
 
@@ -11,52 +11,57 @@ import (
 )
 
 func Subscribe(ctx context.Context, user *models.Subscriber) error {
-	db, err := db.Config()
+	client, err := db.Client()
 	if err != nil {
-		fmt.Println("Error connecting to database", err)
+    return err
 	}
 
-	q := "INSERT INTO subscribers (id, first_name,last_name, email, unique_str, institution, epitech_degree) VALUES ($1, $2, $3, $4, $5, $6, $7);"
-	fmt.Println("q", q)
-	insert, err := db.Prepare(q)
-	if err != nil {
-		fmt.Println("Error preparing statement", err)
-		return err
-	}
-
+	q := `INSERT INTO subscribers (
+    id, 
+    first_name,
+    last_name,
+    email,
+    institution,
+    epitech_degree,
+    discord_id,
+    unique_str
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
 	id, err := uuid.NewRandom()
 	if err != nil {
-		fmt.Println("Error generating uuid", err)
+    logs.Output(
+      logs.ERROR,
+      "Error when generating UUID for a new subscriber.",
+    )
 		return err
 	}
+  uniqueStr, err :=uuid.NewRandom()
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      "Error when generating unique string for a subscriber.",
+    )
+  }
 
-	_, err = insert.ExecContext(ctx,
-		id,
-		user.Firstname,
-		user.Lastname,
-		user.Email,
-		user.UniqueStr,
-		user.Institution,
-		user.EpitechDegree,
-	)
-
+  user.SetID(id.String())
+  user.SetUniqueStr(uniqueStr.String())
+  err = db.Exec[models.Subscriber](ctx, client, q, *user)
 	if err != nil {
 		fmt.Println("Error inserting into database", err)
 		return err
 	}
-
+  
 	return nil
 }
 
 func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
-	db, err := db.Config()
+	db, err := db.Client()
 	if err != nil {
 		fmt.Println("Error connecting to database", err)
 	}
 
 	rows, err := db.QueryContext(ctx, "SELECT * FROM subscribers")
 	if err != nil {
-		log.Fatal(err)
+    logs.Output(logs.ERROR, "Could not execute the query.")
 	}
 	defer rows.Close()
 
@@ -74,7 +79,10 @@ func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
 			&subscriber.Institution,
 			&subscriber.EpitechDegree)
 		if err != nil {
-			log.Fatal(err)
+      logs.Output(
+        logs.ERROR,
+        "Values retrieved from database did not match model properties.",
+      )
 		}
 		result = append(result, &subscriber)
 	}
