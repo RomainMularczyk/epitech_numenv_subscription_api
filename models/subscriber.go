@@ -1,13 +1,14 @@
 package models
 
 type Subscriber struct {
-	Id             string `json:"id"`
-	Firstname      string `json:"firstname"`
-	Lastname       string `json:"lastname"`
-	Email          string `json:"email"`
-	Institution    string `json:"institution"`
-	Formation      string `json:"formation"`
-	OtherFormation string `json:"other_formation"`
+	Id            string `json:"id"`
+	Firstname     string `json:"first_name"`
+	Lastname      string `json:"last_name"`
+	Email         string `json:"email"`
+	Institution   string `json:"institution"`
+	EpitechDegree string `json:"epitech_degree"`
+	DiscordId     string `json:"discord_id"`
+	UniqueStr     string `json:"unique_str"`
 }
 
 func (m *Subscriber) GetID() string {

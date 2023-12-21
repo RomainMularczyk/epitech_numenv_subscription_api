@@ -10,7 +10,6 @@ import (
 )
 
 func Subscribe(ctx echo.Context) error {
-	// do stuff
 	u := &models.Subscriber{}
 	err := ctx.Bind(u)
 	id := ctx.Param("id")
@@ -23,4 +22,12 @@ func Subscribe(ctx echo.Context) error {
 		return err
 	}
 	return ctx.NoContent(http.StatusOK)
+}
+
+func ReadAll(ctx echo.Context) error {
+	list, err := services.ReadAll(ctx)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(http.StatusOK, list)
 }
