@@ -1,1 +1,9 @@
+# SECRETS
 *.env
+
+# MISC
+*.DS_Store
+
+# Editors
+*.vs_code/
+*.idea/
