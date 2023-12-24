@@ -14,37 +14,37 @@ import (
 func Subscribe(ctx echo.Context) error {
 	user := &models.Subscriber{}
 	err := ctx.Bind(user)
-	id := ctx.Param("id")
+	sessionName := ctx.Param("sessionName")
 
 	if err != nil {
-    logs.Output(
-      logs.ERROR,
-      "Could not parse user metadata.",
-    )
-    return ctx.JSON(
-      http.StatusUnprocessableEntity,
-      responses.ErrorResponse{ Message: "Could not parse user metadata." },
-    )
+		logs.Output(
+			logs.ERROR,
+			"Could not parse user metadata.",
+		)
+		return ctx.JSON(
+			http.StatusUnprocessableEntity,
+			responses.ErrorResponse{Message: "Could not parse user metadata."},
+		)
 	}
-  err = services.Subscribe(ctx, user, id)
+	err = services.Subscribe(ctx, user, sessionName)
 	if err != nil {
-    return ctx.JSON(
-      http.StatusUnprocessableEntity,
-      responses.ErrorResponse{ 
-        Message: fmt.Sprintf(
-          "Service could not handle the request. Error: %s",
-          err.Error(),
-        ),
-      },
-    )
+		return ctx.JSON(
+			http.StatusUnprocessableEntity,
+			responses.ErrorResponse{
+				Message: fmt.Sprintf(
+					"Service could not handle the request. Error: %s",
+					err.Error(),
+				),
+			},
+		)
 	}
 	return ctx.JSON(
-    http.StatusCreated,
-    responses.SuccessResponse[models.Subscriber]{
-      Data: *user,
-      Message: "Successfully registered new subscriber.",
-    },
-  )
+		http.StatusCreated,
+		responses.SuccessResponse[models.Subscriber]{
+			Data:    *user,
+			Message: "Successfully registered new subscriber.",
+		},
+	)
 }
 
 func ReadAll(ctx echo.Context) error {

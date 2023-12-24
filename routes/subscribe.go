@@ -7,6 +7,6 @@ import (
 )
 
 func Subscribe(e *echo.Echo) {
-	e.POST("/subscribe/:id", controllers.Subscribe)
+	e.POST("/subscribe/:sessionName", controllers.Subscribe)
 	e.GET("/subscribers", controllers.ReadAll)
 }
