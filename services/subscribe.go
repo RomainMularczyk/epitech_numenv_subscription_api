@@ -2,18 +2,18 @@ package services
 
 import (
 	"numenv_subscription_api/models"
-  "numenv_subscription_api/services/mail"
 	"numenv_subscription_api/repositories"
+	"numenv_subscription_api/services/mail"
 
 	"github.com/labstack/echo/v4"
 )
 
-func Subscribe(c echo.Context, user *models.Subscriber, id string) error {
-	err := repositories.Subscribe(c.Request().Context(), user)
+func Subscribe(c echo.Context, user *models.Subscriber, sessionName string) error {
+	err := repositories.Subscribe(c.Request().Context(), user, sessionName)
 	if err != nil {
 		return err
 	}
-  mail.Send_mail()
+	mail.Send_mail()
 	return nil
 }
 
