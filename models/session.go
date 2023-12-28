@@ -1,9 +1,12 @@
 package models
 
 type Session struct {
-	Id             string `json:"id"`
+  Id             string `json:"id" binding:"required"`
 	Name           string `json:"name" binding:"required"`
-	NumSubscribers string `json:"num_subscribers"`
+  Speaker        string `json:"speaker" binding:"required"`
+  Date           string `json:"date" binding:"required"`
+  Type           string `json:"type" binding:"required"`
+  NumSubscribers string `json:"num_subscribers" binding:"required"`
 }
 
 func (m *Session) GetID() string {
