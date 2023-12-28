@@ -11,7 +11,11 @@ import (
   "github.com/google/uuid"
 )
 
-func Subscribe(c echo.Context, user *models.Subscriber, speaker string) error {
+func Subscribe(
+  c echo.Context, 
+  user *models.Subscriber, 
+  speaker string,
+) error {
   discord.DiscordClient()
   sess, err := repositories.GetSessionBySpeaker(c.Request().Context(), speaker)
 
@@ -27,7 +31,8 @@ func Subscribe(c echo.Context, user *models.Subscriber, speaker string) error {
       "Error when generating unique string for a subscriber.",
     )
   }
-  mail.SendMail("romain.mularczyk@gmail.com", sess.Name, uniqueStr.String())
+
+  mail.SendMail(user.Email, sess.Name, uniqueStr.String())
 	return nil
 }
 
