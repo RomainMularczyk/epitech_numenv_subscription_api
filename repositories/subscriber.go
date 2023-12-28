@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Subscribe(ctx context.Context, user *models.Subscriber, sessionName string) error {
+func Subscribe(ctx context.Context, user *models.Subscriber, sessionId string) error {
 	client, err := db.Client()
 	if err != nil {
 		return err
@@ -25,7 +25,8 @@ func Subscribe(ctx context.Context, user *models.Subscriber, sessionName string)
     epitech_degree,
     discord_id,
     unique_str
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+  ) VALUES ($1, $2, $3, $4, $5, $6, NULLIF($7, ''), $8);`
+
 	id, err := uuid.NewRandom()
 	if err != nil {
 		logs.Output(
@@ -46,11 +47,10 @@ func Subscribe(ctx context.Context, user *models.Subscriber, sessionName string)
 	user.SetUniqueStr(uniqueStr.String())
 	err = db.Exec[models.Subscriber](ctx, client, q, *user)
 	if err != nil {
-		fmt.Println("Error inserting into database", err)
 		return err
 	}
 
-	sessionInfos, err := GetSessionByName(ctx, sessionName)
+	sessionInfos, err := GetSessionById(ctx, sessionId)
 	if err != nil {
 		return err
 	}
