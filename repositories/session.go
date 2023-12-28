@@ -11,6 +11,78 @@ import (
 	"numenv_subscription_api/models"
 )
 
+func GetSessionById(ctx context.Context, sessionId string) (*models.Session, error) {
+  dbClient, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+
+  sess := &models.Session{}
+  q := "SELECT id, name, speaker, date, type, num_subscribers FROM sessions WHERE id=$1"
+  err = dbClient. 
+    QueryRowContext(ctx, q, sessionId). 
+    Scan(&sess.Id, &sess.Name, &sess.Speaker, &sess.Date, &sess.Type, &sess.NumSubscribers)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Error occurred when retrieving session by Id (%s). Query : %u\n",
+        sessionId,
+        err,
+      ),
+    )
+    return nil, err
+  }
+  return sess, nil
+}
+
+func GetSessionBySpeaker(ctx context.Context, speaker string) (*models.Session, error) {
+  dbClient, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+
+  sess := &models.Session{}
+  q := "SELECT id, name, speaker, date, type, num_subscribers FROM sessions WHERE speaker=$1"
+  err = dbClient.
+    QueryRowContext(ctx, q, speaker).
+    Scan(&sess.Id, &sess.Name, &sess.Speaker, &sess.Date, &sess.Type, &sess.NumSubscribers)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Error occurred when retrieving session by speaker name (%s). Query : %u\n",
+        speaker,
+        err,
+      ),
+    )
+    return nil, err
+  }
+  return sess, nil
+}
+
+func GetSessionNumberSubscribers(
+  ctx context.Context, 
+  speaker string,
+) (*int, error) {
+  dbClient, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+
+  var count int
+  err = dbClient.QueryRow("SELECT COUNT(*) FROM subscribers_to_sessions").Scan(&count)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      "Could not query the of rows.",
+    )
+    return nil, err
+  }
+
+  return &count, nil
+}
+
 func GetSessionByName(ctx context.Context, name string) (*models.Session, error) {
 	dbClient, err := db.Client()
 	if err != nil {
