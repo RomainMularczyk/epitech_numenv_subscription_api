@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"numenv_subscription_api/errors/logs"
 	"reflect"
 )
@@ -29,8 +28,6 @@ func Exec[T any](
 		value := reflect.ValueOf(data).Field(i).Interface()
 		arrayValues[i] = value
 	}
-
-	fmt.Println(arrayValues...)
 
 	_, err = query.ExecContext(
 		ctx,

@@ -14,7 +14,7 @@ import (
 func Subscribe(ctx echo.Context) error {
 	user := &models.Subscriber{}
 	err := ctx.Bind(user)
-	sessionName := ctx.Param("sessionName")
+	sessionName := ctx.Param("speaker")
 
 	if err != nil {
 		logs.Output(

@@ -7,3 +7,9 @@
 # Editors
 *.vs_code/
 *.idea/
+
+# Temp
+*tmp/
+
+# Air
+*.air.toml
