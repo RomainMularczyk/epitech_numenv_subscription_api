@@ -22,7 +22,7 @@ func Output(logLevel LogLevel, errMsg string) {
   l := log.New(
     os.Stderr,
     fmt.Sprintf("%s: ", logLevel.String()),
-    1,
+    0,
   )
   l.Print(errMsg)
 }
