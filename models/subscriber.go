@@ -7,7 +7,7 @@ type Subscriber struct {
   Email         string `json:"email" binding:"required"`
   Institution   string `json:"institution" binding:"required"`
 	EpitechDegree string `json:"epitech_degree"`
-	DiscordId     string `json:"discord_id"`
+	DiscordId     *string `json:"discord_id"`
 }
 
 func (m *Subscriber) GetUniqueStr() string {
