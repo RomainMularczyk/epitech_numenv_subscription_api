@@ -85,12 +85,68 @@ func RegisterSubscriberDiscordId(
   return nil
 }
 
+// Retrieve user metadata by user email
+func GetSubscriberByEmail(email string) (*models.Subscriber, error) {
+  client, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+  defer client.Close()
+
+  subscriber := &models.Subscriber{}
+  q := `SELECT
+    id,
+    first_name,
+    last_name,
+    email,
+    institution,
+    epitech_degree,
+    discord_id
+    FROM subscribers WHERE email=$1
+  `
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the statement : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  err = stmt.QueryRow(email).Scan(
+    &subscriber.Id,
+    &subscriber.Firstname,
+    &subscriber.Lastname,
+    &subscriber.Email,
+    &subscriber.Institution,
+    &subscriber.EpitechDegree,
+    &subscriber.DiscordId,
+  ) 
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query: %s. Error produced : %s.",
+        q,
+        err,
+      ),
+    )
+    return nil, err
+  }
+
+  return subscriber, nil
+}
+
 // Retrieve user metadata by user Id
 func GetSubscriberById(id string) (*models.Subscriber, error) {
 	client, err := db.Client()
 	if err != nil {
     return nil, err
 	}
+  defer client.Close()
 
   subscriber := &models.Subscriber{}
   q := `SELECT 
@@ -101,13 +157,12 @@ func GetSubscriberById(id string) (*models.Subscriber, error) {
     logs.Output(
       logs.ERROR,
       fmt.Sprintf(
-        "Could not prepare the statement : %s",
+        "Could not prepare the statement : %s.",
         q,
       ),
     )
     return nil, err
   }
-  defer client.Close()
 
   err = stmt.QueryRow(id).Scan(
     &subscriber.Id,
@@ -122,7 +177,9 @@ func GetSubscriberById(id string) (*models.Subscriber, error) {
 		logs.Output(
       logs.ERROR, 
       fmt.Sprintf(
-        "Could not execute the query: %s.", q,
+        "Could not execute the query: %s. Error procuded : %s.",
+        q,
+        err,
       ),
     )
     return nil, err
