@@ -13,7 +13,7 @@ import (
 
 // Get the session metadata by the user unique string
 func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
-  dbClient, err := db.Client()
+  client, err := db.Client()
   if err != nil {
     return nil, err
   }
@@ -31,7 +31,7 @@ func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
     JOIN subscribers_to_sessions ON sessions.id = subscribers_to_sessions.sessions_id 
     WHERE subscribers_to_sessions.unique_str=$1`
 
-  err = dbClient.
+  err = client.
     QueryRow(q, uniqueStr).
     Scan(
       &sess.Id,
