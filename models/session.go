@@ -6,6 +6,7 @@ type Session struct {
   Speaker        string `json:"speaker" binding:"required"`
   Date           string `json:"date" binding:"required"`
   Type           string `json:"type" binding:"required"`
+  DiscordRoleId  string `json:"discord_role_id" binding:"required"`
   NumSubscribers string `json:"num_subscribers" binding:"required"`
 }
 
