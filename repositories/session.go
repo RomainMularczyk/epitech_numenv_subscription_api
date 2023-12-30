@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"github.com/labstack/echo/v4"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"numenv_subscription_api/models"
 )
 
-// Get the session metadata by the user's unique string
+// Get the session metadata by the user unique string
 func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
   dbClient, err := db.Client()
   if err != nil {
@@ -99,7 +100,10 @@ func GetSessionById(ctx context.Context, sessionId string) (*models.Session, err
 }
 
 // Get the session metadata by speaker name
-func GetSessionBySpeaker(ctx context.Context, speaker string) (*models.Session, error) {
+func GetSessionBySpeaker(
+  ctx context.Context,
+  speaker string,
+) (*models.Session, error) {
   dbClient, err := db.Client()
   if err != nil {
     return nil, err
@@ -142,23 +146,27 @@ func GetSessionBySpeaker(ctx context.Context, speaker string) (*models.Session, 
 }
 
 // Count the number of subscribers for a given session
-func GetSessionNumberSubscribers(
-  ctx context.Context, 
-  id string,
+// queried by speaker name
+func GetSessionNumberSubscribersBySpeaker(
+  ctx echo.Context, 
 ) (*int, error) {
   dbClient, err := db.Client()
   if err != nil {
     return nil, err
   }
 
-  var count int
-  q := "SELECT COUNT(*) FROM subscribers_to_sessions WHERE sessions_id=$1"
+  speaker := ctx.Param("speaker")
 
-  err = dbClient.QueryRow(q, id).Scan(&count)
+  var count int
+  q := `SELECT COUNT(*) FROM subscribers_to_sessions 
+    JOIN sessions ON sessions.id = subscribers_to_sessions.sessions_id
+    WHERE sessions.speaker=$1`
+
+  err = dbClient.QueryRow(q, speaker).Scan(&count)
   if err != nil {
     logs.Output(
       logs.ERROR,
-      "Could not query the of rows.",
+      "Could not get number of subscribers from database.",
     )
     return nil, err
   }
