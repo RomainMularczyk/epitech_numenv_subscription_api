@@ -8,14 +8,14 @@ import (
 )
 
 func main() {
-  defer discord.DiscordClient()
+  go func() {
+    discord.DiscordClient()
+  }()
 
   // Starting server
 	e := echo.New()
 	routes.Subscribe(e)
   
-	go func() {
-    e.Logger.Fatal(e.Start(":1323"))
-  }()
+  e.Logger.Fatal(e.Start(":1323"))
 }
 
