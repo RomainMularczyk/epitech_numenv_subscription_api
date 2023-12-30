@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+	dbError "numenv_subscription_api/errors/db"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
 	"numenv_subscription_api/repositories"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lib/pq"
 )
 
 // Register a user to the database and creates a unique string
@@ -40,7 +43,19 @@ func Subscribe(
     subscriber,
     sess.Id,
   )
-	if err != nil { return err }
+  // If the email used is already registered, it will only
+  // add the subscriber Id in the intermediate table
+  if err != nil {
+    if !dbError.IsErrorCode(err, pq.ErrorCode("23505")) {
+      return err
+    } else {
+      oldSubscriber, err := repositories.GetSubscriberByEmail(subscriber.Email)
+      if err != nil {
+        return err
+      }
+      subscriber.SetID(oldSubscriber.Id)
+    }
+  }
 
   // /!\ Handle case if error with transactions
 
