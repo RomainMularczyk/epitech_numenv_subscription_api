@@ -7,7 +7,7 @@ type Session struct {
   Date           string `json:"date" binding:"required"`
   Type           string `json:"type" binding:"required"`
   DiscordRoleId  string `json:"discord_role_id" binding:"required"`
-  NumSubscribers string `json:"num_subscribers" binding:"required"`
+  NumSubscribers int    `json:"num_subscribers" binding:"required"`
 }
 
 func (m *Session) GetID() string {
