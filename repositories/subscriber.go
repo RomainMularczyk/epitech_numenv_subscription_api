@@ -50,6 +50,7 @@ func Subscribe(
 		return err
 	}
 
+  // Add metadata to intermediate table
 	err = AddSubscriberToSession(
     ctx,
     sessionInfos.Id,
