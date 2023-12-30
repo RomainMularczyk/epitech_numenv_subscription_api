@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
 	"numenv_subscription_api/repositories"
