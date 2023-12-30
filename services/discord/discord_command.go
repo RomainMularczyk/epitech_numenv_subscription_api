@@ -52,9 +52,11 @@ func registerSubscriberDiscordIdCallback(
     for _, opt := range options {
       switch opt.Type {
       case discordgo.ApplicationCommandOptionString:
+        // Save Discord Id in the subscribers table
+        uniqueStr := opt.StringValue()
         sess, err := services.RegisterDiscordId(
           interaction.Member.User.ID,
-          opt.StringValue(),
+          uniqueStr,
         )
         if err != nil {
           sessErr := session.InteractionRespond(
@@ -74,6 +76,12 @@ func registerSubscriberDiscordIdCallback(
           }
           return
         }
+        // Get subscriber by unique str
+        subscriber, err := services.GetSubscriberByUniqueStr(uniqueStr)
+        if err != nil {
+          return
+        }
+        // Bot response to user interaction
         err = session.InteractionRespond(
           interaction.Interaction,
           &discordgo.InteractionResponse {
@@ -95,11 +103,14 @@ func registerSubscriberDiscordIdCallback(
           os.Getenv("DISCORD_GUILD_ID"),
           interaction.Member.User.ID,
           fmt.Sprintf(
-            "%s (Poet)",
+            "%s (%s%v)",
             interaction.Member.User.Username,
+            subscriber.Firstname,
+            subscriber.Lastname[0],
           ),
         )
         if err != nil {
+          fmt.Println(err)
           logs.Output(
             logs.ERROR,
             "Could not initiate bot response.",
