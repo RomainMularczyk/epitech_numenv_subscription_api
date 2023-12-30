@@ -8,15 +8,10 @@ type Subscriber struct {
   Institution   string `json:"institution" binding:"required"`
 	EpitechDegree string `json:"epitech_degree"`
 	DiscordId     string `json:"discord_id"`
-	UniqueStr     string `json:"unique_str"`
 }
 
 func (m *Subscriber) GetUniqueStr() string {
   return m.Id
-}
-
-func (m *Subscriber) SetUniqueStr(uniqueStr string) {
-  m.UniqueStr = uniqueStr
 }
 
 func (m *Subscriber) GetID() string {
