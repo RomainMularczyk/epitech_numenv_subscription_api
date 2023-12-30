@@ -57,7 +57,7 @@ func registerSubscriberDiscordIdCallback(
           opt.StringValue(),
         )
         if err != nil {
-          err := session.InteractionRespond(
+          sessErr := session.InteractionRespond(
             interaction.Interaction,
             &discordgo.InteractionResponse {
               Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -66,14 +66,14 @@ func registerSubscriberDiscordIdCallback(
               },
             },
           )
-          if err != nil {
+          if sessErr != nil {
             logs.Output(
               logs.ERROR,
-              "Could not initiate bot response.",
+              "Could not initiate Discord bot session response.",
             )
           }
+          return
         }
-        fmt.Println(sess)
         err = session.InteractionRespond(
           interaction.Interaction,
           &discordgo.InteractionResponse {
@@ -90,6 +90,14 @@ func registerSubscriberDiscordIdCallback(
           os.Getenv("DISCORD_GUILD_ID"),
           interaction.Member.User.ID,
           sess.DiscordRoleId,
+        )
+        session.GuildMemberNickname(
+          os.Getenv("DISCORD_GUILD_ID"),
+          interaction.Member.User.ID,
+          fmt.Sprintf(
+            "%s (Poet)",
+            interaction.Member.User.Username,
+          ),
         )
         if err != nil {
           logs.Output(
