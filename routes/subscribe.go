@@ -10,3 +10,4 @@ func Subscribe(e *echo.Echo) {
 	e.POST("/subscribe/:sessionName", controllers.Subscribe)
 	e.GET("/subscribers", controllers.ReadAll)
 }
+
