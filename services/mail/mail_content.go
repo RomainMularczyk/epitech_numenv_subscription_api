@@ -42,7 +42,7 @@ func FormatContent(session string, uniqueStr string) string {
                 text-decoration: none;
               '
             >
-              Rejoindre le server
+              Rejoindre le serveur
             </a>
           </td>
         </tr>
