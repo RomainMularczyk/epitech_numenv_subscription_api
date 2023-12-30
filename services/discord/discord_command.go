@@ -15,7 +15,7 @@ func DiscordUserRegistrationCommand(
   appCommand := []*discordgo.ApplicationCommand {
     {
       Name: "register",
-      Description: "Registrate a new subscriber.",
+      Description: "Register a new subscriber.",
       Options: []*discordgo.ApplicationCommandOption {
         {
           Name: "key",
