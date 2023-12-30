@@ -1,13 +1,56 @@
 package repositories
 
 import (
-  "context"
-  "fmt"
-  "numenv_subscription_api/db"
-  "numenv_subscription_api/errors/logs"
+	"context"
+	"fmt"
+	"numenv_subscription_api/db"
+	"numenv_subscription_api/errors/logs"
 
-  "github.com/google/uuid"
+	"github.com/google/uuid"
 )
+
+// Retrieve user by querying intermediate table
+func GetSubscriberForeignKeyByUniqueStr(
+  uniqueStr string,
+) (*string, error) {
+	client, err := db.Client()
+	if err != nil {
+		return nil, err
+	}
+  defer client.Close()
+
+  var subscriberId string
+  q := `SELECT subscribers_id 
+    FROM subscribers_to_sessions 
+    WHERE unique_str=$1`
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the query : %s.",
+        q,
+      ),
+    )
+  }
+
+  err = stmt.
+    QueryRow(uniqueStr).
+    Scan(&subscriberId)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Error occurred when retrieving subscriber by UniqueStr (%s). Query : %s\n",
+        uniqueStr,
+        q,
+      ),
+    )
+  }
+
+  return &subscriberId, nil
+}
 
 // Register data in the intermediate table
 // Those should include :
