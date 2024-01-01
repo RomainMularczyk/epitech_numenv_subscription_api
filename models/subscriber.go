@@ -10,10 +10,6 @@ type Subscriber struct {
 	DiscordId     *string `json:"discord_id"`
 }
 
-func (m *Subscriber) GetUniqueStr() string {
-  return m.Id
-}
-
 func (m *Subscriber) GetID() string {
 	return m.Id
 }
