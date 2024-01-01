@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	dbError "numenv_subscription_api/errors/db"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
@@ -90,8 +89,8 @@ func GetSubscriberByUniqueStr(uniqueStr string) (*models.Subscriber, error) {
 }
 
 // Get all the subscribers
-func ReadAll(c echo.Context) ([]*models.Subscriber, error) {
-	result, err := repositories.ReadAll(c.Request().Context())
+func GetAllSubscribers(c echo.Context) ([]*models.Subscriber, error) {
+	result, err := repositories.GetAllSubscribers(c.Request().Context())
 	if err != nil {
 		return nil, err
 	}
