@@ -2,6 +2,7 @@ package discord
 
 import (
 	"numenv_subscription_api/errors/logs"
+	"numenv_subscription_api/repositories"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
@@ -10,6 +11,23 @@ import (
 func DiscordUserRegistrationCommand(
 	discordClient *discordgo.Session,
 ) {
+	sessions, err := repositories.GetAllSessions()
+	if err != nil {
+		logs.Output(
+			logs.ERROR,
+			"Could not get sessions from the db to create the Discord bot commands.",
+		)
+		return
+	}
+
+	var autoCompleteChoices []*discordgo.ApplicationCommandOptionChoice
+	for _, session := range sessions {
+		autoCompleteChoices = append(autoCompleteChoices, &discordgo.ApplicationCommandOptionChoice{
+			Value: session.Speaker,
+			Name:  session.Speaker,
+		})
+	}
+
 	appCommands := []*discordgo.ApplicationCommand{
 		{
 			Name:        "register",
@@ -38,12 +56,13 @@ func DiscordUserRegistrationCommand(
 					Name:        "name",
 					Description: "The name of the session to subscribe to.",
 					Type:        discordgo.ApplicationCommandOptionString,
+					Choices:     autoCompleteChoices,
 				},
 			},
 		},
 	}
 
-	_, err := discordClient.ApplicationCommandBulkOverwrite(
+	_, err = discordClient.ApplicationCommandBulkOverwrite(
 		os.Getenv("DISCORD_APP_ID"),
 		os.Getenv("DISCORD_GUILD_ID"),
 		appCommands,

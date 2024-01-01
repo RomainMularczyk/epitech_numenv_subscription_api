@@ -2,11 +2,10 @@ package discord
 
 import (
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/repositories"
-	"time"
-
-	"github.com/bwmarrin/discordgo"
+	"numenv_subscription_api/utils"
 )
 
 // List all sessions a subcriber is subscribed to
@@ -71,19 +70,11 @@ func ListMySessions(
 
 	listSessions := "Vous êtes inscrit.e aux sessions suivantes :\n"
 	for _, session := range sessions {
-		date, err := time.Parse(time.RFC3339, session.Date)
-		if err != nil {
-			logs.Output(
-				logs.ERROR,
-				"Could not parse the date.",
-			)
-		}
-
 		listSessions += fmt.Sprintf(
 			"- **%s** - *%s* (Date : %s)\n",
 			session.Speaker,
 			session.Name,
-			date.Format("DD-MM-YYYY"),
+			utils.FormatDate(session.Date),
 		)
 	}
 
@@ -131,7 +122,7 @@ func ListSessions(
 			"- **%s** - *%s* (Date : %s)\n",
 			session.Speaker,
 			session.Name,
-			session.Date,
+			utils.FormatDate(session.Date),
 		)
 	}
 

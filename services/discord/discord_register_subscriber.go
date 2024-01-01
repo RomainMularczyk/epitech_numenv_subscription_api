@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/services"
+	"numenv_subscription_api/utils"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
@@ -68,7 +69,7 @@ func RegisterSubscriber(
 				&discordgo.WebhookParams{
 					Content: fmt.Sprintf(
 						`Vous êtes inscrit à la session : **%s** - *%s*. Elle aura lieu le %s.`,
-						sess.Speaker, sess.Name, sess.Date,
+						sess.Speaker, sess.Name, utils.FormatDate(sess.Date),
 					),
 				},
 			)
@@ -82,7 +83,7 @@ func RegisterSubscriber(
 				os.Getenv("DISCORD_GUILD_ID"),
 				i.Member.User.ID,
 				fmt.Sprintf(
-					"%s (%s%v)",
+					"%s (%s %c)",
 					i.Member.User.Username,
 					subscriber.Firstname,
 					subscriber.Lastname[0],

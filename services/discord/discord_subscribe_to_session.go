@@ -8,6 +8,7 @@ import (
 	"numenv_subscription_api/models"
 	"numenv_subscription_api/repositories"
 	"numenv_subscription_api/services"
+	"numenv_subscription_api/utils"
 	"os"
 	"reflect"
 
@@ -78,7 +79,7 @@ func SubscribeToSession(
 				&discordgo.WebhookParams{
 					Content: fmt.Sprintf(
 						`Vous êtes inscrit à la session : **%s** - *%s*. Elle aura lieu le %s.`,
-						sess.Speaker, sess.Name, sess.Date,
+						sess.Speaker, sess.Name, utils.FormatDate(sess.Date),
 					),
 				},
 			)
