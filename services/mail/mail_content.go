@@ -47,6 +47,12 @@ func FormatContent(session string, uniqueStr string) string {
           </td>
         </tr>
       </table>
+
+      <p>
+      Une fois enregistré sur le serveur Discord, vous pouvez rejoindre directement une 
+      nouvelle session depuis le canal <pre>"welcome"</pre> en utilisant la commande
+      suivi du nom de l'intervenant de la session "/subscribe <intervenant>".
+      </p>
     </body>`, 
     session,
     uniqueStr,
