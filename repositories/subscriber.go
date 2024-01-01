@@ -152,6 +152,7 @@ func GetSubscriberById(id string) (*models.Subscriber, error) {
   q := `SELECT 
       id, first_name, last_name, email, institution, epitech_degree, discord_id
       FROM subscribers WHERE id=$1`
+
   stmt, err := client.Prepare(q)
   if err != nil {
     logs.Output(
@@ -188,21 +189,98 @@ func GetSubscriberById(id string) (*models.Subscriber, error) {
   return subscriber, nil
 }
 
+func GetSubscriberByDiscordId(discordId string) (*models.Subscriber, error) {
+  client, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+  defer client.Close()
+
+  subscriber := &models.Subscriber{}
+  q := `SELECT
+    id, 
+    first_name, 
+    last_name, 
+    email, 
+    institution, 
+    epitech_degree, 
+    discord_id
+    FROM subscribers
+    WHERE discord_id=$1
+  `
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the query. Query : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  err = stmt.QueryRow(discordId).Scan(
+    &subscriber.Id,
+    &subscriber.Firstname,
+    &subscriber.Lastname,
+    &subscriber.Email,
+    &subscriber.Institution,
+    &subscriber.EpitechDegree,
+    &subscriber.DiscordId,
+  )
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query : %s, produced error : %s.",
+        q,
+        err,
+      ),
+    )
+    return nil, err
+  }
+
+  return subscriber, nil
+}
+
 // Read all entries in the subscribers table
-func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
-	db, err := db.Client()
+func GetAllSubscribers(ctx context.Context) ([]*models.Subscriber, error) {
+	client, err := db.Client()
 	if err != nil {
     return nil, err
 	}
+	defer client.Close()
 
-	rows, err := db.QueryContext(ctx, "SELECT * FROM subscribers")
+  q := "SELECT * FROM subscribers"
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the query. Query : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+	rows, err := stmt.QueryContext(ctx)
 	if err != nil {
-		logs.Output(logs.ERROR, "Could not execute the query.")
+		logs.Output(
+      logs.ERROR, 
+      fmt.Sprintf(
+        "Could not execute the query : %s, produced error : %s.",
+        q,
+        err,
+      ),
+    )
     return nil, err
 	}
-	defer rows.Close()
 
-	var result []*models.Subscriber
+	var subscribers []*models.Subscriber
 	for rows.Next() {
 		var subscriber models.Subscriber
 
@@ -222,8 +300,8 @@ func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
 			)
       return nil, err
 		}
-		result = append(result, &subscriber)
+		subscribers = append(subscribers, &subscriber)
 	}
 
-	return result, nil
+	return subscribers, nil
 }
