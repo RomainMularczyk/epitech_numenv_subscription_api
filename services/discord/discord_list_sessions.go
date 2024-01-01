@@ -11,139 +11,160 @@ import (
 
 // List all sessions a subcriber is subscribed to
 func ListMySessions(
-  s *discordgo.Session,
-  i *discordgo.InteractionCreate,
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
 ) {
-  // Get subscriber Id
-  subscriber, err := repositories.GetSubscriberByDiscordId(i.Member.User.ID)
-  if err != nil {
-    sessErr := s.InteractionRespond(
-      i.Interaction,
-      &discordgo.InteractionResponse {
-        Type: discordgo.InteractionResponseChannelMessageWithSource,
-        Data: &discordgo.InteractionResponseData {
-          Content: "Une erreur est survenue en tentant de récupérer la liste des sessions auxquelles vous êtes inscrit.e.",
-        },
-      },
-    )
-    if sessErr != nil {
-      logs.Output(
-        logs.ERROR,
-        "Could not initiate Discord bot session response.",
-      )
-      return
-    }
-    return
-  }
-  
-  // Get all sessions a subscriber is registered to
-  sessions, err := repositories.GetAllSessionsBySubscriberId(subscriber.Id)
-  if err != nil {
-    sessErr := s.InteractionRespond(
-      i.Interaction,
-      &discordgo.InteractionResponse {
-        Type: discordgo.InteractionResponseChannelMessageWithSource,
-        Data: &discordgo.InteractionResponseData {
-          Content: "Une erreur est survenue en tentant de récupérer la liste des sessions auxquelles vous êtes inscrit.e.",
-        },
-      },
-    )
-    if sessErr != nil {
-      logs.Output(
-        logs.ERROR,
-        "Could not initiate Discord bot session response.",
-      )
-      return
-    }
-    return
-  }
+	// Initiate Discord bot session response
+	sessErr := s.InteractionRespond(
+		i.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		},
+	)
+	if sessErr != nil {
+		logs.Output(
+			logs.ERROR,
+			"Could not initiate Discord bot session response.",
+		)
+		return
+	}
 
+	// Get subscriber Id
+	subscriber, err := repositories.GetSubscriberByDiscordId(i.Member.User.ID)
+	if err != nil {
+		_, err = s.FollowupMessageCreate(
+			i.Interaction,
+			false,
+			&discordgo.WebhookParams{
+				Content: "Une erreur est survenue en tentant de récupérer la liste des sessions auxquelles vous êtes inscrit.e.",
+			},
+		)
+		if err != nil {
+			logs.Output(
+				logs.ERROR,
+				"Could not initiate Discord bot session response.",
+			)
+			return
+		}
+		return
+	}
 
-  listSessions := "Vous êtes inscrit.e aux sessions suivantes :\n"
-  for _, session := range sessions {
-    date, err := time.Parse(time.RFC3339, session.Date)
-    if err != nil {
-      logs.Output(
-        logs.ERROR,
-        "Could not parse the date.",
-      )
-    }
+	// Get all sessions a subscriber is registered to
+	sessions, err := repositories.GetAllSessionsBySubscriberId(subscriber.Id)
+	if err != nil {
+		_, err = s.FollowupMessageCreate(
+			i.Interaction,
+			false,
+			&discordgo.WebhookParams{
+				Content: "Une erreur est survenue en tentant de récupérer la liste des sessions auxquelles vous êtes inscrit.e.",
+			},
+		)
+		if err != nil {
+			logs.Output(
+				logs.ERROR,
+				"Could not initiate Discord bot session response.",
+			)
+			return
+		}
+		return
+	}
 
-    listSessions += fmt.Sprintf(
-      "- **%s** - *%s* (Date : %s)\n",
-      session.Speaker,
-      session.Name,
-      date.Format("DD-MM-YYYY"),
-    )
-  }
+	listSessions := "Vous êtes inscrit.e aux sessions suivantes :\n"
+	for _, session := range sessions {
+		date, err := time.Parse(time.RFC3339, session.Date)
+		if err != nil {
+			logs.Output(
+				logs.ERROR,
+				"Could not parse the date.",
+			)
+		}
 
-  sessErr := s.InteractionRespond(
-    i.Interaction,
-    &discordgo.InteractionResponse {
-      Type: discordgo.InteractionResponseChannelMessageWithSource,
-      Data: &discordgo.InteractionResponseData {
-        Content: listSessions,
-      },
-    },
-  ) 
-  if sessErr != nil {
-    logs.Output(
-      logs.ERROR,
-      "Could not initiate Discord bot session response.",
-    )
-  }
+		listSessions += fmt.Sprintf(
+			"- **%s** - *%s* (Date : %s)\n",
+			session.Speaker,
+			session.Name,
+			date.Format("DD-MM-YYYY"),
+		)
+	}
+
+	_, err = s.FollowupMessageCreate(
+		i.Interaction,
+		false,
+		&discordgo.WebhookParams{
+			Content: listSessions,
+		},
+	)
+	if err != nil {
+		logs.Output(
+			logs.ERROR,
+			"Could not initiate Discord bot session response.",
+		)
+	}
 }
 
 // List all available sessions
 func ListSessions(
-  s *discordgo.Session,
-  i *discordgo.InteractionCreate,
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
 ) {
-  sessions, err := repositories.GetAllSessions()
+	// Initiate Discord bot session response
+	sessErr := s.InteractionRespond(
+		i.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		},
+	)
+	if sessErr != nil {
+		logs.Output(
+			logs.ERROR,
+			"Could not initiate Discord bot session response.",
+		)
+		return
+	}
 
-  listSessions := ""
-  for _, session := range sessions {
-    listSessions += fmt.Sprintf(
-      "- **%s** - *%s* (Date : %s)\n",
-      session.Speaker,
-      session.Name,
-      session.Date,
-    )
-  }
+	//Get all sessions
+	sessions, err := repositories.GetAllSessions()
 
-  if err != nil {
-    sessErr := s.InteractionRespond(
-      i.Interaction,
-      &discordgo.InteractionResponse {
-        Type: discordgo.InteractionResponseChannelMessageWithSource,
-        Data: &discordgo.InteractionResponseData {
-          Content: "Une erreur est survenue en tentant de récupérer la liste des sessions.",
-        },
-      },
-    )
-    if sessErr != nil {
-      logs.Output(
-        logs.ERROR,
-        "Could not initiate Discord bot session response.",
-      )
-      return
-    }
-    return
-  }
+	listSessions := ""
+	for _, session := range sessions {
+		listSessions += fmt.Sprintf(
+			"- **%s** - *%s* (Date : %s)\n",
+			session.Speaker,
+			session.Name,
+			session.Date,
+		)
+	}
 
-  sessErr := s.InteractionRespond(
-    i.Interaction,
-    &discordgo.InteractionResponse {
-      Type: discordgo.InteractionResponseChannelMessageWithSource,
-      Data: &discordgo.InteractionResponseData {
-        Content: listSessions,
-      },
-    },
-  )
-  if sessErr != nil {
-    logs.Output(
-      logs.ERROR,
-      "Could not initiate Discord bot session response.",
-    )
-  }
+	if err != nil {
+		_, err = s.FollowupMessageCreate(
+			i.Interaction,
+			false,
+			&discordgo.WebhookParams{
+				Content: "Une erreur est survenue en tentant de récupérer la liste des sessions.",
+			},
+		)
+		if err != nil {
+			logs.Output(
+				logs.ERROR,
+				"Could not initiate Discord bot session response.",
+			)
+			return
+		}
+		return
+	}
+
+	_, err = s.FollowupMessageCreate(
+		i.Interaction,
+		false,
+		&discordgo.WebhookParams{
+			Content: listSessions,
+		},
+	)
+
+	if err != nil {
+		logs.Output(
+			logs.ERROR,
+			"Could not initiate Discord bot session response.",
+		)
+	}
 }
