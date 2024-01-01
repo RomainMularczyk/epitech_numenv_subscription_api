@@ -26,7 +26,7 @@ func Subscribe(ctx echo.Context) error {
 			responses.ErrorResponse{Message: "Could not parse user metadata."},
 		)
 	}
-	err = services.Subscribe(ctx, user, sessionName)
+	err = services.SubscribeToSessionAndSendMail(ctx.Request().Context(), user, sessionName)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusUnprocessableEntity,
