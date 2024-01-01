@@ -13,7 +13,7 @@ import (
 
 // Get the session metadata by the user unique string
 func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
-  dbClient, err := db.Client()
+  client, err := db.Client()
   if err != nil {
     return nil, err
   }
@@ -31,7 +31,7 @@ func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
     JOIN subscribers_to_sessions ON sessions.id = subscribers_to_sessions.sessions_id 
     WHERE subscribers_to_sessions.unique_str=$1`
 
-  err = dbClient.
+  err = client.
     QueryRow(q, uniqueStr).
     Scan(
       &sess.Id,
@@ -205,3 +205,67 @@ func GetSessionByName(ctx context.Context, name string) (*models.Session, error)
 	return sess, nil
 }
 
+func GetAllSessions() ([]*models.Session, error) {
+  client, err := db.Client()
+  if err != nil { return nil, err }
+  defer client.Close()
+
+  q := `SELECT 
+    id, 
+    name, 
+    speaker, 
+    type, 
+    date, 
+    num_subscribers, 
+    discord_role_id 
+    FROM sessions`
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare query. Query : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  rows, err := stmt.Query()
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query. Query : %s, produced error : %s.",
+        q,
+        err,
+      ),
+    )
+  }
+
+  var result []*models.Session
+  for rows.Next() {
+    var session models.Session
+
+    err := rows.Scan(
+      &session.Id,
+      &session.Name,
+      &session.Speaker,
+      &session.Type,
+      &session.Date,
+      &session.NumSubscribers,
+      &session.DiscordRoleId,
+    )
+    if err != nil {
+      logs.Output(
+        logs.ERROR,
+        "Values retrieved from database did not match model properties.",
+      )
+      return nil, err
+    }
+    result = append(result, &session)
+  }
+
+  return result, nil
+}

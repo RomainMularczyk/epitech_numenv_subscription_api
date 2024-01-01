@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"numenv_subscription_api/db"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
@@ -9,13 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// Register a user in the database and create the intermediate 
+// Register a user in the database and create the intermediate
 // table entry to associate it with the corresponding session
 func Subscribe(
   ctx context.Context,
-  user *models.Subscriber,
+  subscriber *models.Subscriber,
   sessionId string,
-  uniqueStr string,
 ) error {
 	client, err := db.Client()
 	if err != nil {
@@ -34,76 +34,253 @@ func Subscribe(
     email,
     institution,
     epitech_degree,
-    discord_id,
-    unique_str
-  ) VALUES ($1, $2, $3, $4, $5, $6, NULLIF($7, ''), $8);`
+    discord_id
+  ) VALUES ($1, $2, $3, $4, $5, $6, NULLIF($7, ''));`
 
-	user.SetID(id.String())
-	user.SetUniqueStr(uniqueStr)
-	err = db.Exec[models.Subscriber](ctx, client, q, *user)
+	subscriber.SetID(id.String())
+	err = db.Exec[models.Subscriber](ctx, client, q, *subscriber)
 	if err != nil {
 		return err
 	}
 
-	sessionInfos, err := GetSessionById(ctx, sessionId)
-	if err != nil {
-		return err
-	}
-
-  // Add metadata to intermediate table
-	err = AddSubscriberToSession(
-    ctx,
-    sessionInfos.Id,
-    user.Id,
-    uniqueStr,
-  )
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
 // Register a user's Discord Id to the database
-func RegisterUserDiscordId(
-  uniqueStr string,
+func RegisterSubscriberDiscordId(
   discordId string,
+  uniqueStr string,
 ) error {
   client, err := db.Client()
   if err != nil {
     return err
   }
+  defer client.Close()
 
   q := `UPDATE subscribers
-    SET discord_id = $1
-    WHERE unique_str = $2
-  `
-
-  query, err := client.Prepare(q)
+    SET discord_id=$1
+    FROM subscribers_to_sessions
+    WHERE subscribers.id=subscribers_to_sessions.subscribers_id
+    AND subscribers_to_sessions.unique_str=$2`
+  stmt, err := client.Prepare(q)
   if err != nil {
+    logs.Output(
+      logs.ERROR,
+      "Could not prepare the statement.",
+    )
     return err
   }
 
-  _, err = query.Exec(q)
+  _, err = stmt.Exec(discordId, uniqueStr)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query : %s.", q,
+      ),
+    )
+    return err
+  }
 
   return nil
 }
 
+// Retrieve user metadata by user email
+func GetSubscriberByEmail(email string) (*models.Subscriber, error) {
+  client, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+  defer client.Close()
+
+  subscriber := &models.Subscriber{}
+  q := `SELECT
+    id,
+    first_name,
+    last_name,
+    email,
+    institution,
+    epitech_degree,
+    discord_id
+    FROM subscribers WHERE email=$1
+  `
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the statement : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  err = stmt.QueryRow(email).Scan(
+    &subscriber.Id,
+    &subscriber.Firstname,
+    &subscriber.Lastname,
+    &subscriber.Email,
+    &subscriber.Institution,
+    &subscriber.EpitechDegree,
+    &subscriber.DiscordId,
+  ) 
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query: %s. Error produced : %s.",
+        q,
+        err,
+      ),
+    )
+    return nil, err
+  }
+
+  return subscriber, nil
+}
+
+// Retrieve user metadata by user Id
+func GetSubscriberById(id string) (*models.Subscriber, error) {
+	client, err := db.Client()
+	if err != nil {
+    return nil, err
+	}
+  defer client.Close()
+
+  subscriber := &models.Subscriber{}
+  q := `SELECT 
+      id, first_name, last_name, email, institution, epitech_degree, discord_id
+      FROM subscribers WHERE id=$1`
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the statement : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  err = stmt.QueryRow(id).Scan(
+    &subscriber.Id,
+    &subscriber.Firstname,
+    &subscriber.Lastname,
+    &subscriber.Email,
+    &subscriber.Institution,
+    &subscriber.EpitechDegree,
+    &subscriber.DiscordId,
+  )
+	if err != nil {
+		logs.Output(
+      logs.ERROR, 
+      fmt.Sprintf(
+        "Could not execute the query: %s. Error procuded : %s.",
+        q,
+        err,
+      ),
+    )
+    return nil, err
+	}
+
+  return subscriber, nil
+}
+
+func GetSubscriberByDiscordId(discordId string) (*models.Subscriber, error) {
+  client, err := db.Client()
+  if err != nil {
+    return nil, err
+  }
+  defer client.Close()
+
+  subscriber := &models.Subscriber{}
+  q := `SELECT
+    id, 
+    first_name, 
+    last_name, 
+    email, 
+    institution, 
+    epitech_degree, 
+    discord_id
+    FROM subscribers
+    WHERE discord_id=$1
+  `
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the query. Query : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+  err = stmt.QueryRow(discordId).Scan(
+    &subscriber.Id,
+    &subscriber.Firstname,
+    &subscriber.Lastname,
+    &subscriber.Email,
+    &subscriber.Institution,
+    &subscriber.EpitechDegree,
+    &subscriber.DiscordId,
+  )
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not execute the query : %s, produced error : %s.",
+        q,
+        err,
+      ),
+    )
+    return nil, err
+  }
+
+  return subscriber, nil
+}
 
 // Read all entries in the subscribers table
-func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
-	db, err := db.Client()
+func GetAllSubscribers(ctx context.Context) ([]*models.Subscriber, error) {
+	client, err := db.Client()
 	if err != nil {
     return nil, err
 	}
+	defer client.Close()
 
-	rows, err := db.QueryContext(ctx, "SELECT * FROM subscribers")
+  q := "SELECT * FROM subscribers"
+
+  stmt, err := client.Prepare(q)
+  if err != nil {
+    logs.Output(
+      logs.ERROR,
+      fmt.Sprintf(
+        "Could not prepare the query. Query : %s.",
+        q,
+      ),
+    )
+    return nil, err
+  }
+
+	rows, err := stmt.QueryContext(ctx)
 	if err != nil {
-		logs.Output(logs.ERROR, "Could not execute the query.")
+		logs.Output(
+      logs.ERROR, 
+      fmt.Sprintf(
+        "Could not execute the query : %s, produced error : %s.",
+        q,
+        err,
+      ),
+    )
     return nil, err
 	}
-	defer rows.Close()
 
-	var result []*models.Subscriber
+	var subscribers []*models.Subscriber
 	for rows.Next() {
 		var subscriber models.Subscriber
 
@@ -113,9 +290,9 @@ func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
 			&subscriber.Lastname,
 			&subscriber.DiscordId,
 			&subscriber.Email,
-			&subscriber.UniqueStr,
 			&subscriber.Institution,
-			&subscriber.EpitechDegree)
+			&subscriber.EpitechDegree,
+    )
 		if err != nil {
 			logs.Output(
 				logs.ERROR,
@@ -123,8 +300,8 @@ func ReadAll(ctx context.Context) ([]*models.Subscriber, error) {
 			)
       return nil, err
 		}
-		result = append(result, &subscriber)
+		subscribers = append(subscribers, &subscriber)
 	}
 
-	return result, nil
+	return subscribers, nil
 }

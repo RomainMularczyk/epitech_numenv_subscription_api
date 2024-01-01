@@ -33,10 +33,11 @@ func Exec[T any](
 		ctx,
 		arrayValues...,
 	)
+  defer query.Close()
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
-			"Error happened with the following SQL query: "+q,
+			"Error happened with the following SQL query: " + q,
 		)
 		return err
 	}

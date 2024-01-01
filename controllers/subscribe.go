@@ -47,8 +47,9 @@ func Subscribe(ctx echo.Context) error {
 	)
 }
 
-func ReadAll(ctx echo.Context) error {
-	list, err := services.ReadAll(ctx)
+// Retrieve all subscribers
+func GetAllSubscribers(ctx echo.Context) error {
+	list, err := services.GetAllSubscribers(ctx)
 	if err != nil {
 		return err
 	}
