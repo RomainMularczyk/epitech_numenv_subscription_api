@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	dbError "numenv_subscription_api/errors/db"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
@@ -12,80 +13,106 @@ import (
 	"github.com/lib/pq"
 )
 
-// Register a user to the database and creates a unique string
-// that is used to also register the same user on Discord so
+// Register a subscriber to the database and creates a unique string
+// that is used to also register the same subscriber on Discord so
 // it can access the corresponding channel
-func Subscribe(
-  c echo.Context, 
-  subscriber *models.Subscriber, 
-  speaker string,
-) error {
-  // Retrieve session metadata
-  sess, err := repositories.GetSessionBySpeaker(
-    c.Request().Context(), 
-    speaker,
-  )
+func SubscribeToSession(
+	ctx context.Context,
+	subscriber *models.Subscriber,
+	speaker string,
+) (*models.Session, *string, error) {
+	// Retrieve session metadata
+	sess, err := repositories.GetSessionBySpeaker(
+		ctx,
+		speaker,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  // Generate unique string
-  uniqueStr, err := uuid.NewRandom()
-  if err != nil {
-    logs.Output(
-      logs.ERROR,
-      "Error when generating unique string for a subscriber.",
-    )
-    return err
-  }
+	// Generate unique string
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		logs.Output(
+			logs.ERROR,
+			"Error when generating unique string for a subscriber.",
+		)
+		return nil, nil, err
+	}
 
-  // Register subscriber in subscriber table
+	// Register subscriber in subscriber table
 	err = repositories.Subscribe(
-    c.Request().Context(), 
-    subscriber,
-    sess.Id,
-  )
-  // If the email used is already registered, it will only
-  // add the subscriber Id in the intermediate table
-  if err != nil {
-    if !dbError.IsErrorCode(err, pq.ErrorCode("23505")) {
-      return err
-    } else {
-      oldSubscriber, err := repositories.GetSubscriberByEmail(subscriber.Email)
-      if err != nil {
-        return err
-      }
-      subscriber.SetID(oldSubscriber.Id)
-    }
-  }
+		ctx,
+		subscriber,
+		sess.Id,
+	)
+	// If the email used is already registered, it will only
+	// add the subscriber Id in the intermediate table
+	if err != nil {
+		if !dbError.IsErrorCode(err, pq.ErrorCode("23505")) {
+			return nil, nil, err
+		} else {
+			oldSubscriber, err := repositories.GetSubscriberByEmail(subscriber.Email)
+			if err != nil {
+				return nil, nil, err
+			}
+			subscriber.SetID(oldSubscriber.Id)
+		}
+	}
 
-  // /!\ Handle case if error with transactions
+	// /!\ Handle case if error with transactions
 
-  // Register suscriber in intermediate table
-  err = repositories.AddSubscriberToSession(
-    c.Request().Context(),
-    sess.Id,
-    subscriber.Id,
-    uniqueStr.String(),
-  )
-  if err != nil { return err }
+	// Register subscriber in intermediate table
+	uniqueStr := uuid.String()
+	err = repositories.AddSubscriberToSession(
+		ctx,
+		sess.Id,
+		subscriber.Id,
+		uniqueStr,
+	)
+	if err != nil {
+		if !dbError.IsErrorCode(err, pq.ErrorCode("23505")) {
+			return nil, nil, err
+		} else {
+			return nil, nil, dbError.AlreadyRegisteredError{
+				Message: "Suscriber is already registered to this session",
+			}
+		}
+	}
 
-  mail.SendMail(subscriber.Email, sess.Name, uniqueStr.String())
+	return sess, &uniqueStr, nil
+}
+
+// Register a subscriber to a session
+// Send the mail with the unique string
+func SubscribeToSessionAndSendMail(
+	ctx context.Context,
+	subscriber *models.Subscriber,
+	speaker string,
+) error {
+	sess, uniqueStr, err := SubscribeToSession(ctx, subscriber, speaker)
+	if err != nil {
+		return err
+	}
+	mail.SendMail(subscriber.Email, sess.Name, *uniqueStr)
 
 	return nil
 }
 
-// Get user metadata by user Id
+// Get subscriber metadata by subscriber Id
 func GetSubscriberByUniqueStr(uniqueStr string) (*models.Subscriber, error) {
-  subscriberId, err := repositories.
-    GetSubscriberForeignKeyByUniqueStr(uniqueStr)
-  if err != nil {
-    return nil, err
-  }
+	subscriberId, err := repositories.
+		GetSubscriberForeignKeyByUniqueStr(uniqueStr)
+	if err != nil {
+		return nil, err
+	}
 
-  subscriber, err := repositories.GetSubscriberById(*subscriberId)
-  if err != nil {
-    return nil, err
-  }
+	subscriber, err := repositories.GetSubscriberById(*subscriberId)
+	if err != nil {
+		return nil, err
+	}
 
-  return subscriber, nil
+	return subscriber, nil
 }
 
 // Get all the subscribers

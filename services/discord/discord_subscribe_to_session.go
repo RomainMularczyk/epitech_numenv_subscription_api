@@ -1,16 +1,21 @@
 package discord
 
 import (
+	"context"
 	"fmt"
+	dbError "numenv_subscription_api/errors/db"
 	"numenv_subscription_api/errors/logs"
+	"numenv_subscription_api/models"
+	"numenv_subscription_api/repositories"
 	"numenv_subscription_api/services"
 	"numenv_subscription_api/utils"
 	"os"
+	"reflect"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func RegisterSubscriber(
+func SubscribeToSession(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {
@@ -18,6 +23,7 @@ func RegisterSubscriber(
 	for _, opt := range options {
 		switch opt.Type {
 		case discordgo.ApplicationCommandOptionString:
+			speaker := opt.StringValue()
 
 			// Initiate Discord bot session response
 			sessErr := s.InteractionRespond(
@@ -34,34 +40,38 @@ func RegisterSubscriber(
 				return
 			}
 
-			// Save Discord Id in the subscribers table
-			uniqueStr := opt.StringValue()
-			sess, err := services.RegisterDiscordId(
-				i.Member.User.ID,
-				uniqueStr,
-			)
+			sess, err := RegisterSubscriberToNewSession(i.Member.User.ID, speaker)
 			if err != nil {
-				_, err = s.FollowupMessageCreate(
+				msg := "Une erreur est survenue en tentant de vous inscrire à la session."
+				if reflect.TypeOf(err) == reflect.TypeOf(dbError.AlreadyRegisteredError{}) {
+					msg = "Vous êtes déjà inscrit.e à cette session."
+				}
+				_, err := s.FollowupMessageCreate(
 					i.Interaction,
 					false,
 					&discordgo.WebhookParams{
-						Content: "Merci d'entrer votre clé communiquée par mail.",
+						Content: msg,
 					},
 				)
-				if sessErr != nil {
-					logs.Output(
-						logs.ERROR,
-						"Could not initiate Discord bot session response.",
-					)
+				if err != nil {
+					return
 				}
+
 				return
 			}
-			// Get subscriber by unique str
-			subscriber, err := services.GetSubscriberByUniqueStr(uniqueStr)
+
+			err = s.GuildMemberRoleAdd(
+				os.Getenv("DISCORD_GUILD_ID"),
+				i.Member.User.ID,
+				sess.DiscordRoleId,
+			)
 			if err != nil {
-				return
+				fmt.Println(err)
+				logs.Output(
+					logs.ERROR,
+					"Could set role to subscriber.",
+				)
 			}
-			// Bot response to user interaction
 
 			_, err = s.FollowupMessageCreate(
 				i.Interaction,
@@ -74,23 +84,7 @@ func RegisterSubscriber(
 				},
 			)
 
-			s.GuildMemberRoleAdd(
-				os.Getenv("DISCORD_GUILD_ID"),
-				i.Member.User.ID,
-				sess.DiscordRoleId,
-			)
-			s.GuildMemberNickname(
-				os.Getenv("DISCORD_GUILD_ID"),
-				i.Member.User.ID,
-				fmt.Sprintf(
-					"%s (%s %c)",
-					i.Member.User.Username,
-					subscriber.Firstname,
-					subscriber.Lastname[0],
-				),
-			)
 			if err != nil {
-				fmt.Println(err)
 				logs.Output(
 					logs.ERROR,
 					"Could not initiate bot response.",
@@ -98,4 +92,22 @@ func RegisterSubscriber(
 			}
 		}
 	}
+}
+
+func RegisterSubscriberToNewSession(discordId string, speaker string) (*models.Session, error) {
+	ctx := context.Background()
+
+	// Get subscriber
+	subscriber, err := repositories.GetSubscriberByDiscordId(discordId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add subscriber to session
+	sess, _, err := services.SubscribeToSession(ctx, subscriber, speaker)
+	if err != nil {
+		return nil, err
+	}
+
+	return sess, nil
 }
