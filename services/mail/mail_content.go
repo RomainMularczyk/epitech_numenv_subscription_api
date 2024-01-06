@@ -6,54 +6,134 @@ import (
 
 func FormatContent(session string, uniqueStr string) string {
   htmlContent := fmt.Sprintf(
-    `<!DOCTYPE PUBLIC “-//W3C//DTD XHTML 1.0 Transitional//EN” “https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd”>
-    <html xmlns="http://www.w3.org/1999/xhtml">
+    `<!DOCTYPE html>
+    <html lang="fr">
     <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Inscription .env{2024}</title>
+        <style>
+            header {
+                margin-left: 5em;
+                padding: 20px;
+                display: -webkit-box;
+                vertical-align: middle;
+                -webkit-align-content: center
+            }
+            .content {
+                margin: 5em;
+            }
+            .bold {
+                font-weight: bold;
+            }
+            .credits-stack {
+                display: flex;
+                font-size: 1.1em;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+            .code {
+              background-color: #4169E1;
+              color: #F3F2F2;
+              border-radius: 5px 5px 5px 5px;
+              padding: 2px 4px 2px 4px;
+            }
+            p {
+                text-align: left;
+                font-size: 18px;
+            }
+            footer {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-evenly;
+                text-align: center;
+                padding: 10px;
+                font-size: 12px;
+            }
+            .btn-box {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+            }
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #4169E1;
+                color: #ffffff !important;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+            #title {
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-left: 1em;
+            }
+        </style>
     </head>
     <body>
-      <p>Merci pour votre inscription à la session : %s.</p>
+        <header>
+            <a href="https://envnum.fr"><img src="https://ibb.co/SNc8khS/512x512.png" alt="logo"/></a>
+            <h1 id="title">Inscription .env{2024}</h1>
+        </header>
+        <main>
+            <div class="content">
 
-      <p>Pour finaliser votre inscription et pouvoir poser vos questions et échanger avec les
-      autres participant.e.s, merci de rejoindre le serveur Discord Envnum et d'utiliser la commande 
-      /register avec le code de connexion suivant : %s.
-      </p>
+                <p>Merci pour votre inscription à la session : <b>%s</b></p>
+                <br>
+                <p>Pour finaliser votre inscription, merci de rejoindre le serveur Discord 
+                    <span class="bold">.env{2024}</span> et d'utiliser la commande 
+                    <span class="code">/register</span> avec le code de connexion suivant : 
+                    <span class="code">%s</span>
+                </p>
+                <br>
+                <p class="btn-box">
+                  <a 
+                    href="https://discord.gg/ADaCQ7bV9Y" 
+                    class="btn"
+                  >
+                    Rejoindre le serveur
+                  </a>
+                </p>
+                <br>
+                <p>
+                    Lors de l'événement, vous pourrez ainsi échanger avec les autres
+                    participant.e.s et poser vos questions aux intervenant.e.s.
+                </p>
+                <br>
+          <p>
+          Une fois enregistré sur le serveur, vous pouvez rejoindre directement une 
+          nouvelle session depuis le canal <span class="code">#welcome</span> en utilisant la commande 
+          <span class="code">/subscribe</span>
+          suivie du nom de l'intervenant de la session <span class="code">/subscribe &lt;intervenant&gt;</span>
+          </p>
 
-      <table
-        width='100%'
-        align='center'
-        border='0'
-        cellspacing='0'
-        cellpadding='0'
-        style="table-layout: fixed;"
-      >
-        <tr>
-          <td aligh='center'>
-            <a 
-              href='https://discord.gg/e3C7v8qPa5' 
-              style='
-                background-color: #4169E1;
-                color: #000000;
-                font-size: 1.3em;
-                padding: 10px;
-                border-radius: 10px;
-                text-decoration: none;
-              '
-            >
-              Rejoindre le serveur
-            </a>
-          </td>
-        </tr>
-      </table>
-
-      <p>
-      Une fois enregistré sur le serveur Discord, vous pouvez rejoindre directement une 
-      nouvelle session depuis le canal <pre>"welcome"</pre> en utilisant la commande
-      suivi du nom de l'intervenant de la session "/subscribe <intervenant>".
-      </p>
-    </body>`, 
+            </div>
+        </main>
+      <footer>
+        <div class="credits-stack">
+          <span>
+            🌍 Eco-conçu avec
+          </span>
+          <a href="https://astro.build/">
+            <img
+              src="https://www.svgrepo.com/show/373446/astro.svg"
+              alt="Astro icon"
+              width="25px"
+            />
+          </a>
+        </div>
+        <div class="credits-epitech">
+          <img
+              src="https://eip.epitech.eu/2014/equigestion/img/epitech-logo.png"
+              alt="epitech icon"
+              width="70px"
+        />
+        </div>
+      </footer>
+    </body>
+    </html>`,
     session,
     uniqueStr,
   )
