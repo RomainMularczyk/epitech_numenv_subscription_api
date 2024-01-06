@@ -18,9 +18,23 @@ func IsSessionFull(next echo.HandlerFunc) echo.HandlerFunc {
       ctx.Request().Context(),
       ctx.Param("speaker"),
     )
+    if err != nil { 
+      return ctx.JSON(
+        http.StatusUnprocessableEntity,
+        responses.ErrorResponse {
+          Message: "Speaker does not exist.",
+        },
+      )
+    }
+
     count, err := repositories.GetSessionNumberSubscribersBySpeaker(ctx)
-    if err != nil || count == nil {
-      return err
+    if err != nil || count == nil { 
+      return ctx.JSON(
+        http.StatusInternalServerError,
+        responses.ErrorResponse {
+          Message: "Could not retrieve number of subscribers for this session.",
+        },
+      )
     }
 
     if *count >= sess.NumSubscribers {
