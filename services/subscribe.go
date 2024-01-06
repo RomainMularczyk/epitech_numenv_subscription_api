@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	altchaError "numenv_subscription_api/errors/altcha"
 	dbError "numenv_subscription_api/errors/db"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
 	"numenv_subscription_api/repositories"
+	"numenv_subscription_api/services/altcha"
 	"numenv_subscription_api/services/mail"
 
 	"github.com/google/uuid"
@@ -46,6 +48,7 @@ func SubscribeToSession(
 		subscriber,
 		sess.Id,
 	)
+
 	// If the email used is already registered, it will only
 	// add the subscriber Id in the intermediate table
 	if err != nil {
@@ -60,8 +63,6 @@ func SubscribeToSession(
 		}
 	}
 
-	// /!\ Handle case if error with transactions
-
 	// Register subscriber in intermediate table
 	uniqueStr := uuid.String()
 	err = repositories.AddSubscriberToSession(
@@ -75,7 +76,7 @@ func SubscribeToSession(
 			return nil, nil, err
 		} else {
 			return nil, nil, dbError.AlreadyRegisteredError{
-				Message: "Suscriber is already registered to this session",
+				Message: "Subscriber is already registered to this session",
 			}
 		}
 	}
@@ -87,13 +88,26 @@ func SubscribeToSession(
 // Send the mail with the unique string
 func SubscribeToSessionAndSendMail(
 	ctx context.Context,
-	subscriber *models.Subscriber,
+	subscriber *models.SubscriberWithChallenge,
 	speaker string,
 ) error {
-	sess, uniqueStr, err := SubscribeToSession(ctx, subscriber, speaker)
+
+  // Verify Altcha
+  res, err := altcha.VerifyALTCHA(*subscriber);
+  if err != nil { return nil }
+  if !res {
+    return altchaError.AltchaNotMatchingError{
+      Message: "Altcha challenge could not be validated.",
+    }
+  }
+
+  newSubscriber := models.FilterOutAltcha(subscriber)
+
+	sess, uniqueStr, err := SubscribeToSession(ctx, &newSubscriber, speaker)
 	if err != nil {
 		return err
 	}
+
 	mail.SendMail(subscriber.Email, sess.Name, *uniqueStr)
 
 	return nil
