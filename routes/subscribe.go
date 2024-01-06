@@ -8,7 +8,6 @@ import (
 )
 
 func Subscribe(e *echo.Echo) {
-	e.GET("/subscribe", controllers.GetAllSubscribers)
   // Groups
   g := e.Group("/subscribe")
   g.Use(middlewares.IsSessionFull)
