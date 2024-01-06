@@ -15,8 +15,8 @@ func SendMail(address string, session string, uniqueStr string) {
     )
 	email := &InfoSendMail {
       FromEmail: os.Getenv("MAILJET_SENDER_ADDRESS"),
-      FromName: "Team Envnum",
-      Subject: fmt.Sprintf("Envnum{2024} - Inscription %s", session),
+      FromName: "Team .env{2024}",
+      Subject: fmt.Sprintf(".env{2024} - Inscription %s", session),
       HTMLPart: FormatContent(session, uniqueStr),
       Recipients: []Recipient {
         Recipient {
