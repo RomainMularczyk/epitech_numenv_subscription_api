@@ -2,8 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"numenv_subscription_api/db"
@@ -60,61 +58,6 @@ func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
 			fmt.Sprintf(
 				"Error occurred when retrieving session by UniqueStr (%s). Query : %u\n",
 				uniqueStr,
-				err,
-			),
-		)
-		return nil, err
-	}
-	return sess, nil
-}
-
-// Get the session metadata by session ID
-func GetSessionById(ctx context.Context, sessionId string) (*models.Session, error) {
-	dbClient, err := db.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	sess := &models.Session{}
-	q := `SELECT 
-    id, 
-    name, 
-    speaker, 
-    date, 
-    type, 
-    discord_role_id, 
-    num_subscribers 
-    FROM sessions WHERE id=$1`
-
-	stmt, err := dbClient.Prepare(q)
-	if err != nil {
-		logs.Output(
-			logs.ERROR,
-			fmt.Sprintf(
-				"Could not prepare query. Query : %s.",
-				q,
-			),
-		)
-		return nil, err
-	}
-
-	err = stmt.
-		QueryRowContext(ctx, sessionId).
-		Scan(
-			&sess.Id,
-			&sess.Name,
-			&sess.Speaker,
-			&sess.Date,
-			&sess.Type,
-			&sess.DiscordRoleId,
-			&sess.NumSubscribers,
-		)
-	if err != nil {
-		logs.Output(
-			logs.ERROR,
-			fmt.Sprintf(
-				"Error occurred when retrieving session by Id (%s). Query : %u\n",
-				sessionId,
 				err,
 			),
 		)
@@ -220,50 +163,6 @@ func GetSessionNumberSubscribersBySpeaker(
 	}
 
 	return &count, nil
-}
-
-// Get the session metadata by session name
-func GetSessionByName(ctx context.Context, name string) (*models.Session, error) {
-	dbClient, err := db.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	sess := &models.Session{}
-	q := "SELECT id, name, num_subscribers FROM sessions WHERE name=$1"
-
-	stmt, err := dbClient.Prepare(q)
-	if err != nil {
-		logs.Output(
-			logs.ERROR,
-			fmt.Sprintf(
-				"Could not prepare query. Query : %s.",
-				q,
-			),
-		)
-		return nil, err
-	}
-
-	err = stmt.
-		QueryRowContext(ctx, name).
-		Scan(&sess.Id, &sess.Name, &sess.NumSubscribers)
-	if err != nil {
-		logs.Output(
-			logs.ERROR,
-			fmt.Sprintf(
-				"Error occurred with Get session by name (%s) query: %v\n",
-				name,
-				err,
-			),
-		)
-		if errors.Is(err, sql.ErrNoRows) {
-			logs.Output(logs.WARNING, "no sessions found with that ID")
-			return nil, err
-		}
-		return nil, err
-	}
-
-	return sess, nil
 }
 
 func GetAllSessions() ([]*models.Session, error) {
