@@ -92,16 +92,18 @@ func SubscribeToSessionAndSendMail(
 	speaker string,
 ) error {
 
-  // Verify Altcha
-  res, err := altcha.VerifyALTCHA(*subscriber);
-  if err != nil { return nil }
-  if !res {
-    return altchaError.AltchaNotMatchingError{
-      Message: "Altcha challenge could not be validated.",
-    }
-  }
+	// Verify Altcha
+	res, err := altcha.VerifyALTCHA(*subscriber)
+	if err != nil {
+		return err
+	}
+	if !res {
+		return altchaError.AltchaNotMatchingError{
+			Message: "Altcha challenge could not be validated.",
+		}
+	}
 
-  newSubscriber := models.FilterOutAltcha(subscriber)
+	newSubscriber := models.FilterOutAltcha(subscriber)
 
 	sess, uniqueStr, err := SubscribeToSession(ctx, &newSubscriber, speaker)
 	if err != nil {

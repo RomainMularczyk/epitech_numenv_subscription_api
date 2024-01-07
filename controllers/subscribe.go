@@ -2,26 +2,18 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/models"
 	"numenv_subscription_api/models/responses"
 	"numenv_subscription_api/services"
-  "numenv_subscription_api/utils"
-
-	"github.com/labstack/echo/v4"
 )
 
 func Subscribe(ctx echo.Context) error {
 	subscriber := &models.SubscriberWithChallenge{}
 	err := ctx.Bind(subscriber)
-	speaker := ctx.Param("speaker")
-
-  // Verify user email format
-  err = utils.VerifyMailFormat(subscriber.Email)
-  if err != nil { return err }
-
-  // Verify user metadata format
+	// Verify user metadata format
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -33,11 +25,24 @@ func Subscribe(ctx echo.Context) error {
 		)
 	}
 
+	// Validate data based on tag "validation" in model
+	err = ctx.Validate(subscriber)
+	if err != nil {
+		return ctx.JSON(
+			http.StatusUnprocessableEntity,
+			responses.ErrorResponse{
+				Message: "Could not validate received data:" + err.Error(),
+			},
+		)
+	}
+
+	speaker := ctx.Param("speaker")
+
 	err = services.SubscribeToSessionAndSendMail(
-    ctx.Request().Context(), 
-    subscriber, 
-    speaker,
-  )
+		ctx.Request().Context(),
+		subscriber,
+		speaker,
+	)
 	if err != nil {
 		return ctx.JSON(
 			http.StatusUnprocessableEntity,
@@ -50,7 +55,7 @@ func Subscribe(ctx echo.Context) error {
 		)
 	}
 
-  subscriberWithoutChallenge := models.FilterOutAltcha(subscriber)
+	subscriberWithoutChallenge := models.FilterOutAltcha(subscriber)
 
 	return ctx.JSON(
 		http.StatusAccepted,
@@ -69,10 +74,10 @@ func GetAllSubscribers(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(
-    http.StatusOK,
-    responses.SuccessResponse[[]*models.Subscriber] {
-      Data: subcribersList,
-      Message: "Successfully retrieved all subscribers.",
-    },
-  )
+		http.StatusOK,
+		responses.SuccessResponse[[]*models.Subscriber]{
+			Data:    subcribersList,
+			Message: "Successfully retrieved all subscribers.",
+		},
+	)
 }
