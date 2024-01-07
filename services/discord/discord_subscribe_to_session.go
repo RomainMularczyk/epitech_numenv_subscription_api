@@ -81,7 +81,7 @@ func SubscribeToSession(
 			if sess == nil {
 				lowerCaseSpeaker := strings.ToLower(speaker)
 				urlSpeaker := strings.ReplaceAll(lowerCaseSpeaker, " ", "-")
-				formattedUrl := fmt.Sprintf("%v/program/%v/", os.Getenv("FRONTEND_URL"), urlSpeaker)
+				formattedUrl := fmt.Sprintf("https://%v/program/%v/", os.Getenv("DOMAIN_NAME"), urlSpeaker)
 				_, err = s.FollowupMessageCreate(
 					i.Interaction,
 					false,

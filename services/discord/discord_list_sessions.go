@@ -51,7 +51,7 @@ func ListMySessions(
 
 	// err not nil but subscriber is nil, then user is not registered yet
 	if subscriber == nil {
-		formattedUrl := fmt.Sprintf("%v/program/", os.Getenv("FRONTEND_URL"))
+		formattedUrl := fmt.Sprintf("https://%v/program/", os.Getenv("DOMAIN_NAME"))
 		_, err = s.FollowupMessageCreate(
 			i.Interaction,
 			false,
