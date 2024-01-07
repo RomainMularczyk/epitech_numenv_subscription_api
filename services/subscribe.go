@@ -32,6 +32,10 @@ func SubscribeToSession(
 		return nil, nil, err
 	}
 
+	if sess.Draft {
+		return nil, nil, err
+	}
+
 	// Generate unique string
 	uuid, err := uuid.NewRandom()
 	if err != nil {
