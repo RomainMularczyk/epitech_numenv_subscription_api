@@ -90,7 +90,7 @@ func discordInteractionCallback(
 			RegisterSubscriber(session, interaction)
 		case "sessions":
 			ListSessions(session, interaction)
-		case "mes-sessions	":
+		case "mes-sessions":
 			ListMySessions(session, interaction)
 		case "subscribe":
 			SubscribeToSession(session, interaction)

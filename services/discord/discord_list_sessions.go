@@ -6,6 +6,7 @@ import (
 	"numenv_subscription_api/errors/logs"
 	"numenv_subscription_api/repositories"
 	"numenv_subscription_api/utils"
+	"os"
 )
 
 // List all sessions a subcriber is subscribed to
@@ -45,6 +46,23 @@ func ListMySessions(
 			)
 			return
 		}
+		return
+	}
+
+	// err not nil but subscriber is nil, then user is not registered yet
+	if subscriber == nil {
+		formattedUrl := fmt.Sprintf("%v/program/", os.Getenv("FRONTEND_URL"))
+		_, err = s.FollowupMessageCreate(
+			i.Interaction,
+			false,
+			&discordgo.WebhookParams{
+				Content: fmt.Sprintf(
+					`Merci de réaliser votre première inscription en remplissant le formulaire d'une session
+ sur la plateforme: %v. Un mail vous sera envoyé afin de valider cette inscription via Discord.`,
+					formattedUrl,
+				),
+			},
+		)
 		return
 	}
 
