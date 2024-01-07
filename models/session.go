@@ -1,13 +1,14 @@
 package models
 
 type Session struct {
-  Id             string `json:"id" binding:"required"`
+	Id             string `json:"id" binding:"required"`
 	Name           string `json:"name" binding:"required"`
-  Speaker        string `json:"speaker" binding:"required"`
-  Date           string `json:"date" binding:"required"`
-  Type           string `json:"type" binding:"required"`
-  DiscordRoleId  string `json:"discord_role_id" binding:"required"`
-  NumSubscribers int    `json:"num_subscribers" binding:"required"`
+	Speaker        string `json:"speaker" binding:"required"`
+	Date           string `json:"date" binding:"required"`
+	Type           string `json:"type" binding:"required"`
+	DiscordRoleId  string `json:"discord_role_id" binding:"required"`
+	NumSubscribers int    `json:"num_subscribers" binding:"required"`
+	Draft          bool   `json:"draft" binding:"required"`
 }
 
 func (m *Session) GetID() string {

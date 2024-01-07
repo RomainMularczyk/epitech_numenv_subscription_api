@@ -165,7 +165,7 @@ func GetSessionNumberSubscribersBySpeaker(
 	return &count, nil
 }
 
-func GetAllSessions() ([]*models.Session, error) {
+func GetAllConfirmedSessions() ([]*models.Session, error) {
 	client, err := db.Client()
 	if err != nil {
 		return nil, err
@@ -180,7 +180,8 @@ func GetAllSessions() ([]*models.Session, error) {
     date, 
     num_subscribers, 
     discord_role_id 
-    FROM sessions`
+    FROM sessions
+    WHERE draft = FALSE`
 
 	stmt, err := client.Prepare(q)
 	if err != nil {

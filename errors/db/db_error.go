@@ -8,11 +8,3 @@ func IsErrorCode(err error, errCode pq.ErrorCode) bool {
 	}
 	return false
 }
-
-type AlreadyRegisteredError struct {
-	Message string
-}
-
-func (err AlreadyRegisteredError) Error() string {
-	return err.Message
-}

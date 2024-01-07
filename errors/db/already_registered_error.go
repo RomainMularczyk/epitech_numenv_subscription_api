@@ -1,9 +1,9 @@
 package dbError
 
-type CustomError struct {
+type AlreadyRegisteredError struct {
 	Message string
 }
 
-func (ce CustomError) Error() string {
-	return ce.Message
+func (err AlreadyRegisteredError) Error() string {
+	return err.Message
 }
