@@ -114,7 +114,7 @@ func ListSessions(
 	}
 
 	//Get all sessions
-	sessions, err := repositories.GetAllSessions()
+	sessions, err := repositories.GetAllConfirmedSessions()
 
 	listSessions := ""
 	for _, session := range sessions {
