@@ -35,7 +35,10 @@ func SubscribeToSession(
 			if sessErr != nil {
 				logs.Output(
 					logs.ERROR,
-					"Could not initiate Discord bot session response.",
+					fmt.Sprintf(
+						"Could not initiate Discord bot session response. err: %s",
+						sessErr.Error(),
+					),
 				)
 				return
 			}
@@ -58,6 +61,22 @@ func SubscribeToSession(
 				}
 
 				return
+			}
+
+			if sess == nil {
+				_, err = s.FollowupMessageCreate(
+					i.Interaction,
+					false,
+					&discordgo.WebhookParams{
+						Content: fmt.Sprintf(
+							`Merci de valider votre première inscription via le formulaire
+disponible sur la plateforme: **%s%s** et de consulter l'email qui vous sera envoyé.`,
+							os.Getenv("FRONTEND_URL"),
+							speaker,
+						),
+					},
+				)
+
 			}
 
 			err = s.GuildMemberRoleAdd(
@@ -101,6 +120,11 @@ func RegisterSubscriberToNewSession(discordId string, speaker string) (*models.S
 	subscriber, err := repositories.GetSubscriberByDiscordId(discordId)
 	if err != nil {
 		return nil, err
+	}
+
+	// If no error but subscriber is nil, user is not registered yet
+	if subscriber == nil {
+		return nil, nil
 	}
 
 	// Add subscriber to session

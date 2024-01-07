@@ -31,30 +31,30 @@ func DiscordUserRegistrationCommand(
 	appCommands := []*discordgo.ApplicationCommand{
 		{
 			Name:        "register",
-			Description: "Register a new subscriber.",
+			Description: "Finaliser la première inscription avec la clé unique reçue dans l'email de confirmation.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "key",
-					Description: "The key provided to register to a session.",
+					Description: "Clé unique reçue par mail",
 					Type:        discordgo.ApplicationCommandOptionString,
 				},
 			},
 		},
 		{
 			Name:        "sessions",
-			Description: "List all the sessions available.",
+			Description: "Liste des sessions disponibles.",
 		},
 		{
-			Name:        "my-sessions",
-			Description: "List all the sessions that I'm subscribed to.",
+			Name:        "mes-sessions",
+			Description: "Liste toutes les sessions auxquelles tu es inscrit.e.",
 		},
 		{
 			Name:        "subscribe",
-			Description: "Subscribe to session.",
+			Description: "Inscription rapide à une nouvelle session sans repasser par le formulaire en ligne",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Name:        "name",
-					Description: "The name of the session to subscribe to.",
+					Name:        "Nom de l'intervenant",
+					Description: "Nom de l'intervenant de la session à laquelle tu veux t'inscrire.",
 					Type:        discordgo.ApplicationCommandOptionString,
 					Choices:     autoCompleteChoices,
 				},
@@ -90,7 +90,7 @@ func discordInteractionCallback(
 			RegisterSubscriber(session, interaction)
 		case "sessions":
 			ListSessions(session, interaction)
-		case "my-sessions":
+		case "mes-sessions	":
 			ListMySessions(session, interaction)
 		case "subscribe":
 			SubscribeToSession(session, interaction)
