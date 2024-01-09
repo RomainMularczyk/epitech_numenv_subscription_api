@@ -18,8 +18,13 @@ func FormatContent(session string, uniqueStr string) string {
                 padding: 20px;
                 display: -webkit-box;
                 vertical-align: middle;
-                -webkit-align-content: center
+                -webkit-align-content: center;
             }
+			.header-wrapper {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+			}
             .content {
                 margin: 5em;
             }
@@ -74,10 +79,12 @@ func FormatContent(session string, uniqueStr string) string {
     </head>
     <body>
         <header>
-            <a target="_blank" href="https://envnum.fr">
-              <img width="40px" src="https://www.imghost.net/ib/DCXSkMBLLzEOGC6_1704764808.png" alt="logo"/>
-            </a>
-            <h1 id="title">Inscription .env{2024}</h1>
+			<div class="header-wrapper">
+				<a target="_blank" href="https://envnum.fr">
+				  <img width="60px" src="https://www.imghost.net/ib/DCXSkMBLLzEOGC6_1704764808.png" alt="logo"/>
+				</a>
+				<h1 id="title">Inscription .env{2024}</h1>
+			</div>
         </header>
         <main>
             <div class="content">
@@ -114,25 +121,10 @@ func FormatContent(session string, uniqueStr string) string {
             </div>
         </main>
       <footer>
-        <div class="credits-stack">
-          <span>
-            🌍 Eco-conçu avec
-          </span>
-          <a href="https://astro.build/">
-            <img
-              src="https://www.svgrepo.com/show/373446/astro.svg"
-              alt="Astro icon"
-              width="25px"
-            />
-          </a>
-        </div>
-        <div class="credits-epitech">
-          <img
-              src="https://eip.epitech.eu/2014/equigestion/img/epitech-logo.png"
-              alt="epitech icon"
-              width="70px"
-        />
-        </div>
+			<div class="credits-stack">
+		 		<p>💚 Team .env&#123;2024&#125; </p>
+			</div>
+        
       </footer>
     </body>
     </html>`,
