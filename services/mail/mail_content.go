@@ -1,12 +1,12 @@
 package mail
 
 import (
-  "fmt"
+	"fmt"
 )
 
 func FormatContent(session string, uniqueStr string) string {
-  htmlContent := fmt.Sprintf(
-    `<!DOCTYPE html>
+	htmlContent := fmt.Sprintf(
+		`<!DOCTYPE html>
     <html lang="fr">
     <head>
         <meta charset="UTF-8">
@@ -74,7 +74,9 @@ func FormatContent(session string, uniqueStr string) string {
     </head>
     <body>
         <header>
-            <a href="https://envnum.fr"><img src="https://ibb.co/SNc8khS/512x512.png" alt="logo"/></a>
+            <a target="_blank" href="https://envnum.fr">
+              <img width="40px" src="https://www.imghost.net/ib/DCXSkMBLLzEOGC6_1704764808.png" alt="logo"/>
+            </a>
             <h1 id="title">Inscription .env{2024}</h1>
         </header>
         <main>
@@ -134,9 +136,9 @@ func FormatContent(session string, uniqueStr string) string {
       </footer>
     </body>
     </html>`,
-    session,
-    uniqueStr,
-  )
-  
-  return htmlContent
+		session,
+		uniqueStr,
+	)
+
+	return htmlContent
 }
