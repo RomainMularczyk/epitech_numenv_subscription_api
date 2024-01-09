@@ -68,6 +68,31 @@ func DiscordUserRegistrationCommand(
 	}
 
 	discordClient.AddHandler(discordInteractionCallback)
+	discordClient.AddHandler(discordMessageEventCallback)
+}
+
+func discordMessageEventCallback(
+	session *discordgo.Session,
+	message *discordgo.MessageCreate,
+) {
+	guildMember, err := session.GuildMember(os.Getenv("DISCORD_GUILD_ID"), message.Author.ID)
+	if err != nil {
+		return
+	}
+	hasOrgRole := false
+
+	for _, roleId := range guildMember.Roles {
+		if roleId == os.Getenv("DISCORD_ORG_ROLE_ID") {
+			hasOrgRole = true
+		}
+	}
+
+	if !hasOrgRole && message.ChannelID == os.Getenv("DISCORD_WELCOME_CHANNEL_ID") {
+		err := session.ChannelMessageDelete(message.ChannelID, message.ID)
+		if err != nil {
+			return
+		}
+	}
 }
 
 // Callback function provided to the `.AddHandler` method
