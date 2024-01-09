@@ -55,6 +55,7 @@ func FormatContent(session string, uniqueStr string) string {
                 text-align: center;
                 padding: 10px;
                 font-size: 12px;
+                margin: 5em;
             }
             .btn-box {
                 display: flex;
@@ -120,12 +121,11 @@ func FormatContent(session string, uniqueStr string) string {
 
             </div>
         </main>
-      <footer>
+		<footer>
 			<div class="credits-stack">
-		 		<p>💚 Team .env&#123;2024&#125; </p>
+				<p>💚 Team .env&#123;2024&#125; </p>
 			</div>
-        
-      </footer>
+		</footer>
     </body>
     </html>`,
 		session,
