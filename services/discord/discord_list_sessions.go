@@ -183,3 +183,23 @@ func ListSessions(
 		)
 	}
 }
+
+// List available sessions for autocompletion
+func ListSessionsForAutocompletion() ([]*discordgo.ApplicationCommandOptionChoice, error) {
+	//Get all sessions
+	sessions, err := repositories.GetAllConfirmedSessions()
+	if err != nil {
+		return nil, err
+	}
+
+	// add sessions to options array for autocompletion
+	var autoCompleteChoices []*discordgo.ApplicationCommandOptionChoice
+	for _, session := range sessions {
+		autoCompleteChoices = append(autoCompleteChoices, &discordgo.ApplicationCommandOptionChoice{
+			Value: session.Speaker,
+			Name:  session.Speaker,
+		})
+	}
+
+	return autoCompleteChoices, nil
+}
