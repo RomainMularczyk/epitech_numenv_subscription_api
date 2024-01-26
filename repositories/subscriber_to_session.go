@@ -109,6 +109,7 @@ func GetSubscriberForeignKeyByUniqueStr(
         q,
       ),
     )
+    return nil, err
   }
 
   err = stmt.
@@ -123,6 +124,7 @@ func GetSubscriberForeignKeyByUniqueStr(
         q,
       ),
     )
+    return nil, err
   }
 
   return &subscriberId, nil

@@ -62,6 +62,13 @@ func RegisterSubscriber(
 			// Get subscriber by unique str
 			subscriber, err := services.GetSubscriberByUniqueStr(uniqueStr)
 			if err != nil {
+        _, err = s.FollowupMessageCreate(
+          i.Interaction,
+          false,
+          &discordgo.WebhookParams{
+            Content: "Une erreur est survenue avec le serveur. Merci de réessayer.",
+          },
+        )
 				return
 			}
 			// Bot response to user interaction

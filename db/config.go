@@ -40,6 +40,7 @@ func Client() (*sql.DB, error) {
       logs.ERROR,
       "Could not open connection to the database.",
     )
+    return nil, err
   }
 
 	return db, nil
