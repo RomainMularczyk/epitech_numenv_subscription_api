@@ -19,10 +19,11 @@ func Subscribe(
 	subscriber *models.Subscriber,
 	sessionId string,
 ) error {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return err
 	}
+  defer dbClient.Close()
 
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -40,7 +41,7 @@ func Subscribe(
   ) VALUES ($1, $2, $3, $4, $5, $6, NULLIF($7, ''));`
 
 	subscriber.SetID(id.String())
-	err = db.Exec[models.Subscriber](ctx, client, q, *subscriber)
+	err = db.Exec[models.Subscriber](ctx, dbClient, q, *subscriber)
 	if err != nil {
 		return err
 	}
@@ -53,18 +54,18 @@ func RegisterSubscriberDiscordId(
 	discordId string,
 	uniqueStr string,
 ) error {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer dbClient.Close()
 
 	q := `UPDATE subscribers
     SET discord_id=$1
     FROM subscribers_to_sessions
     WHERE subscribers.id=subscribers_to_sessions.subscribers_id
     AND subscribers_to_sessions.unique_str=$2`
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -89,11 +90,11 @@ func RegisterSubscriberDiscordId(
 
 // Retrieve user metadata by user email
 func GetSubscriberByEmail(email string) (*models.Subscriber, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+  defer dbClient.Close()
 
 	subscriber := &models.Subscriber{}
 	q := `SELECT
@@ -106,7 +107,7 @@ func GetSubscriberByEmail(email string) (*models.Subscriber, error) {
     discord_id
     FROM subscribers WHERE email=$1
   `
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -144,18 +145,18 @@ func GetSubscriberByEmail(email string) (*models.Subscriber, error) {
 
 // Retrieve user metadata by user Id
 func GetSubscriberById(id string) (*models.Subscriber, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+	defer dbClient.Close()
 
 	subscriber := &models.Subscriber{}
 	q := `SELECT 
       id, first_name, last_name, email, institution, epitech_degree, discord_id
       FROM subscribers WHERE id=$1`
 
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -192,11 +193,11 @@ func GetSubscriberById(id string) (*models.Subscriber, error) {
 }
 
 func GetSubscriberByDiscordId(discordId string) (*models.Subscriber, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+	defer dbClient.Close()
 
 	subscriber := &models.Subscriber{}
 	q := `SELECT
@@ -211,7 +212,7 @@ func GetSubscriberByDiscordId(discordId string) (*models.Subscriber, error) {
     WHERE discord_id=$1
   `
 
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -260,15 +261,15 @@ func GetSubscriberByDiscordId(discordId string) (*models.Subscriber, error) {
 
 // Read all entries in the subscribers table
 func GetAllSubscribers(ctx context.Context) ([]*models.Subscriber, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+	defer dbClient.Close()
 
 	q := "SELECT * FROM subscribers"
 
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
