@@ -14,11 +14,11 @@ import (
 func GetAllSessionsBySubscriberId(
   id string,
 ) ([]*models.Session, error) {
-  client, err := db.Client()  
+  dbClient, err := db.Client()  
   if err != nil {
     return nil, err
   }
-  defer client.Close()
+  defer dbClient.Close()
 
   q := `SELECT
     sessions.id,
@@ -34,7 +34,7 @@ func GetAllSessionsBySubscriberId(
     WHERE subscribers_to_sessions.subscribers_id=$1
   `
 
-  stmt, err := client.Prepare(q)
+  stmt, err := dbClient.Prepare(q)
   if err != nil {
     logs.Output(
       logs.ERROR,
@@ -89,18 +89,18 @@ func GetAllSessionsBySubscriberId(
 func GetSubscriberForeignKeyByUniqueStr(
   uniqueStr string,
 ) (*string, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-  defer client.Close()
+  defer dbClient.Close()
 
   var subscriberId string
   q := `SELECT subscribers_id 
     FROM subscribers_to_sessions 
     WHERE unique_str=$1`
 
-  stmt, err := client.Prepare(q)
+  stmt, err := dbClient.Prepare(q)
   if err != nil {
     logs.Output(
       logs.ERROR,
@@ -141,11 +141,11 @@ func AddSubscriberToSession(
   subscriberId string,
   uniqueStr string,
 ) error {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return err
 	}
-  defer client.Close()
+  defer dbClient.Close()
 
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -163,7 +163,7 @@ func AddSubscriberToSession(
     unique_str
   ) VALUES ($1, $2, $3, $4)`
 
-  stmt, err := client.Prepare(q)
+  stmt, err := dbClient.Prepare(q)
   if err != nil {
     logs.Output(
       logs.ERROR,

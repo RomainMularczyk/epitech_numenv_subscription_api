@@ -11,10 +11,11 @@ import (
 
 // Get the session metadata by the user unique string
 func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
+  defer dbClient.Close()
 
 	sess := &models.Session{}
 	q := `SELECT 
@@ -29,7 +30,7 @@ func GetSessionByUniqueStr(uniqueStr string) (*models.Session, error) {
     JOIN subscribers_to_sessions ON sessions.id = subscribers_to_sessions.sessions_id 
     WHERE subscribers_to_sessions.unique_str=$1`
 
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
@@ -75,6 +76,7 @@ func GetSessionBySpeaker(
 	if err != nil {
 		return nil, err
 	}
+  defer dbClient.Close()
 
 	sess := &models.Session{}
 	q := `SELECT 
@@ -133,6 +135,7 @@ func GetSessionNumberSubscribersBySpeaker(
 	if err != nil {
 		return nil, err
 	}
+  defer dbClient.Close()
 
 	speaker := ctx.Param("speaker")
 
@@ -166,11 +169,11 @@ func GetSessionNumberSubscribersBySpeaker(
 }
 
 func GetAllConfirmedSessions() ([]*models.Session, error) {
-	client, err := db.Client()
+	dbClient, err := db.Client()
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
+	defer dbClient.Close()
 
 	q := `SELECT 
     id, 
@@ -183,7 +186,7 @@ func GetAllConfirmedSessions() ([]*models.Session, error) {
     FROM sessions
     WHERE draft = FALSE`
 
-	stmt, err := client.Prepare(q)
+	stmt, err := dbClient.Prepare(q)
 	if err != nil {
 		logs.Output(
 			logs.ERROR,
